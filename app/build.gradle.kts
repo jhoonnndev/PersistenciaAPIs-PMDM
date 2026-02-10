@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 }
 
@@ -62,4 +63,19 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation("androidx.room:room-runtime:2.5.2")
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
+
+    implementation("androidx.compose.ui:ui:1.4.3")
+    implementation("androidx.compose.material:material:1.4.3")
+    implementation("androidx.compose.runtime:runtime-livedata:1.4.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    //API
+    implementation("io.ktor:ktor-client-core:2.3.7")
+    implementation("io.ktor:ktor-client-cio:2.3.7")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
 }
