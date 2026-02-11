@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.trabajonavegacionpmdm.data.local.dao.ShopDao
 import com.example.trabajonavegacionpmdm.data.local.entities.*
 
 // Listamos las 5 entidades
@@ -20,8 +21,7 @@ import com.example.trabajonavegacionpmdm.data.local.entities.*
 )
 abstract class ShopDatabase : RoomDatabase() {
 
-    // TODO: Aquí pondremos el DAO más tarde
-    // abstract fun shopDao(): ShopDao
+    abstract fun shopDao(): ShopDao //Implementamos el DAO
 
     companion object {
         @Volatile
