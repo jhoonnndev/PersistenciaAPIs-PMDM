@@ -4,10 +4,12 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 
 // TABLA MARCA (Brand)
 // Relación 1:N Una marca crea muchos coches
+@Serializable
 @Entity(tableName = "brands")
 data class BrandEntity(
     @PrimaryKey(autoGenerate = true) val brandId: Long = 0,
@@ -31,6 +33,7 @@ data class BrandEntity(
     // Creamos un índice para que la búsqueda por marca sea rápida
     indices = [Index("brandOwnerId")]
 )
+@Serializable
 data class VehicleEntity(
     @PrimaryKey(autoGenerate = true) val vehicleId: Long = 0,
     val model: String,
@@ -53,6 +56,7 @@ data class VehicleEntity(
     ],
     indices = [Index(value = ["vehicleOwnerId"], unique = true)]
 )
+@Serializable
 data class TechnicalSpecsEntity(
     @PrimaryKey(autoGenerate = true) val specId: Long = 0,
     val vehicleOwnerId: Long, // FK hacia el coche
@@ -63,6 +67,7 @@ data class TechnicalSpecsEntity(
 
 // TABLA EXTRAS
 // Relación N:M Muchos coches tienen muchos extras.
+@Serializable
 @Entity(tableName = "extras")
 data class ExtraFeatureEntity(
     @PrimaryKey(autoGenerate = true) val extraId: Long = 0,
@@ -80,6 +85,7 @@ data class ExtraFeatureEntity(
     ],
     indices = [Index("vehicleId"), Index("extraId")]
 )
+@Serializable
 data class VehicleExtraCrossRef(
     val vehicleId: Long,
     val extraId: Long

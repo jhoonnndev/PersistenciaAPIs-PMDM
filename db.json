@@ -1,0 +1,43 @@
+{
+  "vehicles": [
+    {
+      "id": 1,
+      "model": "Model S Plaid",
+      "price": 109990.0,
+      "imageUrl": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Model-S-Main-Hero-Desktop-LHD.jpg",
+      "brand": {
+        "name": "Tesla",
+        "country": "USA",
+        "urlLogo": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png"
+      },
+      "specs": {
+        "horsePower": 1020,
+        "engineType": "Eléctrico",
+        "weight": 2162.0
+      },
+      "extras": [
+        { "id": 101, "name": "Autopilot Mejorado", "price": 3800.0 },
+        { "id": 102, "name": "Llantas Arachnid 21", "price": 4500.0 }
+      ]
+    },
+    {
+      "id": 2,
+      "model": "Mustang GT",
+      "price": 55000.0,
+      "imageUrl": "https://www.ford.es/content/dam/guxeu/rhd/central/cars/2024-mustang/launch/gallery/exterior/ford-mustang-eu-gallery-ext-01-16x9-2160x1215.jpg",
+      "brand": {
+        "name": "Ford",
+        "country": "USA",
+        "urlLogo": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ford_logo_flat.svg"
+      },
+      "specs": {
+        "horsePower": 450,
+        "engineType": "Gasolina",
+        "weight": 1700.0
+      },
+      "extras": [
+        { "id": 103, "name": "Alerón Deportivo", "price": 1200.0 }
+      ]
+    }
+  ]
+}
