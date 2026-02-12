@@ -3,6 +3,7 @@ package com.example.trabajonavegacionpmdm.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.trabajonavegacionpmdm.R
 import com.example.trabajonavegacionpmdm.ui.components.SearchBar
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
@@ -52,15 +55,16 @@ import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: ShopViewModel) {
-    var NombreVehiculoSeleccionado by remember { mutableStateOf("Ninguno seleccionado") }
-    var VehiculoSeleccionado by remember { mutableStateOf<Int?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
 
     val vehiclesList by viewModel.vehicles.collectAsState()
 
-    val filteredVehicles = vehiclesList.filter { vehicle ->
-        vehicle.brand.contains(searchQuery, ignoreCase = true) ||
-        vehicle.model.contains(searchQuery, ignoreCase = true)
+    var NombreVehiculoSeleccionado by remember { mutableStateOf("Ninguno seleccionado") }
+    var vehiculoSeleccionadoId by remember { mutableStateOf<Int?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredVehicles = vehiclesList.filter { populated ->
+        populated.brand.name.contains(searchQuery, ignoreCase = true) ||
+        populated.vehicle.model.contains(searchQuery, ignoreCase = true)
     }
 
     Scaffold(
@@ -97,54 +101,66 @@ fun HomeScreen(navController: NavController, viewModel: ShopViewModel) {
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+            if (vehiclesList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                // Lista de items
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(filteredVehicles) { populated ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .clickable {
+                                    NombreVehiculoSeleccionado = "${populated.brand.name} ${populated.vehicle.model}"
+                                    vehiculoSeleccionadoId = populated.vehicle.vehicleId.toInt()
+                                },
+                            elevation = CardDefaults.cardElevation(8.dp),
 
-            // Lista de items
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(filteredVehicles) { vehicle ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .clickable {
-                                NombreVehiculoSeleccionado = "${vehicle.brand} ${vehicle.model}"
-                                VehiculoSeleccionado = vehicle.id
-                            },
-                        elevation = CardDefaults.cardElevation(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            colors = if (vehiculoSeleccionadoId == populated.vehicle.vehicleId.toInt()) {
+                                CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                            } else {
+                                CardDefaults.cardColors()
+                            }
+
                         ) {
-                            Image(
-                                painter = painterResource(id = vehicle.imageRes),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .clip(RoundedCornerShape(8.dp)), // Bordes
-                                contentScale = ContentScale.Crop
-                            )
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = populated.vehicle.imageUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
 
-                            Spacer(modifier = Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.width(16.dp))
 
-                            // DATOS
-                            Column {
-                                Text(
-                                    text = vehicle.model,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = vehicle.brand,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "${vehicle.price} €",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                // DATOS
+                                Column {
+                                    Text(
+                                        text = populated.vehicle.model,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = populated.brand.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "${populated.vehicle.price} €",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }
@@ -156,9 +172,9 @@ fun HomeScreen(navController: NavController, viewModel: ShopViewModel) {
                 horizontalArrangement = Arrangement.End
             ) {
                 Button(
-                    enabled = VehiculoSeleccionado != null,
+                    enabled = vehiculoSeleccionadoId != null,
                     onClick = {
-                        VehiculoSeleccionado?.let { id ->
+                        vehiculoSeleccionadoId?.let { id ->
                             //Le pasamos el coche seleccionado
                             navController.navigate("details/$id")
                         }

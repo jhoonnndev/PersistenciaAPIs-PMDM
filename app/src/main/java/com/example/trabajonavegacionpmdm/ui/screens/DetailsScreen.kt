@@ -39,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.trabajonavegacionpmdm.R
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 
@@ -75,23 +76,34 @@ fun DetailsScreen(navController: NavController, vehicleId: Int, viewModel: ShopV
                     .padding(innerPadding)
                     .padding(16.dp)
             ) {
-                Text("Detalles del Vehículo", style = MaterialTheme.typography.headlineMedium)
+                Text("Detalles: ${vehicle.vehicle.model}", style = MaterialTheme.typography.headlineMedium)
 
-                Image(
-                    painter = painterResource(id = vehicle.imageRes),
-                    contentDescription = "Imagen del ${vehicle.model}",
+                AsyncImage(
+                    model = vehicle.vehicle.imageUrl,
+                    contentDescription = "Imagen del ${vehicle.vehicle.model}",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp)) // bordes
+                        .clip(RoundedCornerShape(8.dp))
                         .align(Alignment.CenterHorizontally),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Crop
                 )
 
-                Text("Marca: ${vehicle.brand}")
-                Text("Modelo: ${vehicle.model}")
-                Text("Potencia: ${vehicle.hp} CV")
-                Text("Precio Unidad: $${vehicle.price}")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Marca: ${vehicle.brand.name}")
+                Text("Modelo: ${vehicle.vehicle.model}")
+                val hp = vehicle.technicalSpecs?.horsePower ?: "N/D"
+                Text("Potencia: $hp CV")
+                Text("Precio Unidad: ${vehicle.vehicle.price} €")
+
+                if (vehicle.extras.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Extras incluidos:", style = MaterialTheme.typography.titleSmall)
+                    vehicle.extras.forEach { extra ->
+                        Text("- ${extra.name} (+${extra.price}€)")
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

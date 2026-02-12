@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 
 //CARRITO COMPRA
@@ -43,7 +44,7 @@ import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 @Composable
 fun CartScreen(navController: NavController, viewModel: ShopViewModel) {
     //Recuperamos datos del ViewModel
-    val vehicle = viewModel.selectedVehicle
+    val vehiclePopulated = viewModel.selectedVehicle
     val quantity = viewModel.selectedQuantity
     val total = viewModel.totalPrice
 
@@ -95,18 +96,25 @@ fun CartScreen(navController: NavController, viewModel: ShopViewModel) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (vehicle != null) {
+            if (vehiclePopulated != null) {
                 Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Image(
-                            painter = painterResource(id = vehicle.imageRes),
-                            contentDescription = "Imagen del ${vehicle.model}",
+                        AsyncImage(
+                            model = vehiclePopulated.vehicle.imageUrl,
+                            contentDescription = "Imagen del ${vehiclePopulated.vehicle.model}",
                             modifier = Modifier
                                 .height(200.dp)
-                                .clip(RoundedCornerShape(8.dp)), // Bordes
-                            contentScale = ContentScale.Fit
+                                .fillMaxWidth() // Añado esto para que se centre mejor
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop // Crop suele quedar mejor en tarjetas
                         )
-                        Text("Vehículo: ${vehicle.brand} ${vehicle.model}")
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Vehículo: ${vehiclePopulated.brand.name} ${vehiclePopulated.vehicle.model}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         Text("Cantidad seleccionada: $quantity")
                         Divider(modifier = Modifier.padding(vertical = 8.dp))
                         Text("TOTAL A PAGAR: $$total", style = MaterialTheme.typography.titleLarge)
@@ -119,6 +127,7 @@ fun CartScreen(navController: NavController, viewModel: ShopViewModel) {
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedButton(onClick = {
+                viewModel.clearCart()
                 navController.navigate("home")
             }) {
                 Text("Pagar  --> $$total")

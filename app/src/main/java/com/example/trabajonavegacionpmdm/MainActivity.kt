@@ -1,41 +1,53 @@
 package com.example.trabajonavegacionpmdm
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.*
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.compose.material3.MaterialTheme
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
+import com.example.trabajonavegacionpmdm.data.local.ShopDatabase
+import com.example.trabajonavegacionpmdm.data.remote.ShopApi
+import com.example.trabajonavegacionpmdm.data.repository.ShopRepository
 import com.example.trabajonavegacionpmdm.ui.screens.*
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
-//MainActivity (lo que se ve)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Pasar el Context al ViewModel
-        val context = applicationContext
+
+        val database = ShopDatabase.getDatabase(applicationContext)
+        val dao = database.shopDao()
+
+        val api = ShopApi()
+
+        val repository = ShopRepository(api, dao)
+
+
         val shopViewModel: ShopViewModel by viewModels {
-            viewModelFactory {
-                initializer {
-                    ShopViewModel(context)
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    if (modelClass.isAssignableFrom(ShopViewModel::class.java)) {
+                        @Suppress("UNCHECKED_CAST")
+                        return ShopViewModel(repository) as T
+                    }
+                    throw IllegalArgumentException("Unknown ViewModel class")
                 }
             }
         }
+
         setContent {
-            //Inicializar NavController
             val navController = rememberNavController()
 
             MaterialTheme {
-                //NavHost contenedor principal
                 NavHost(navController = navController, startDestination = "welcome") {
 
-                    // Definimos un nombre para cada pantalla
                     composable("welcome") {
                         WelcomeScreen(navController)
                     }
@@ -45,13 +57,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("home") {
+                        // Pasar el viewModel actualizado
                         HomeScreen(navController, shopViewModel)
                     }
 
-                    //Pasar datos entre pantallas
                     composable(
                         route = "details/{vehicleId}",
-                        arguments = listOf(navArgument("vehicleId") { type = NavType.IntType }) // - Uso de NavType.IntType (Línea 348)
+                        arguments = listOf(navArgument("vehicleId") { type = NavType.IntType })
                     ) { backStackEntry ->
                         val vehicleId = backStackEntry.arguments?.getInt("vehicleId") ?: 0
                         DetailsScreen(navController, vehicleId, shopViewModel)
