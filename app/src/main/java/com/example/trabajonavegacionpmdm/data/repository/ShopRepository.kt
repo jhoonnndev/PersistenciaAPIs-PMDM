@@ -1,9 +1,11 @@
 package com.example.trabajonavegacionpmdm.data.repository
 
+import android.util.Log
 import com.example.trabajonavegacionpmdm.data.local.dao.ShopDao
 import com.example.trabajonavegacionpmdm.data.local.entities.VehicleExtraCrossRef
 import com.example.trabajonavegacionpmdm.data.local.relations.VehiclePopulated
 import com.example.trabajonavegacionpmdm.data.remote.ShopApi
+import com.example.trabajonavegacionpmdm.data.remote.model.VehicleRemote
 import com.example.trabajonavegacionpmdm.data.toEntity
 import com.example.trabajonavegacionpmdm.data.toEntityTriple
 import kotlinx.coroutines.flow.Flow
@@ -12,58 +14,136 @@ class ShopRepository(
     private val api: ShopApi,
     private val dao: ShopDao
 ) {
-    // 1. La UI SIEMPRE lee de la Base de Datos Local (Single Source of Truth)
+    // -------------------------------------------------------------------------
+    // 1. LECTURA (Single Source of Truth)
+    // -------------------------------------------------------------------------
+    // La UI siempre observa este Flow. Si insertamos algo abajo, esto se actualiza solo.
     val vehicles: Flow<List<VehiclePopulated>> = dao.getAllVehicles()
 
-    // 2. Función para recargar datos desde Internet y guardarlos en local
+    fun getVehicleById(id: Long): Flow<VehiclePopulated?> {
+        return dao.getVehicleById(id)
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. SINCRONIZACIÓN (GET)
+    // -------------------------------------------------------------------------
     suspend fun refreshData() {
         try {
             // A. Descargar lista de la API
             val remoteVehicles = api.getVehicles()
 
+            // B. Si hay datos, limpiamos la caché local y guardamos los nuevos
             if (remoteVehicles.isNotEmpty()) {
-                // Opcional: Borrar datos viejos para no duplicar
-                dao.deleteAllVehicles()
+                dao.deleteAllVehicles() // Borrón y cuenta nueva
 
-                // B. Procesar cada vehículo que llega de internet
+                // Guardamos uno a uno usando la función auxiliar
                 remoteVehicles.forEach { remoteVehicle ->
-
-                    // Usamos tu Mapper para separar el JSON en 3 entidades
-                    val (vehicleEntity, brandEntity, specsEntity) = remoteVehicle.toEntityTriple()
-
-                    // --- PASO 1: Guardar la MARCA ---
-                    // Necesitamos el ID que genera Room al guardar para asignarlo al coche
-                    val brandId = dao.insertBrand(brandEntity)
-
-                    // --- PASO 2: Guardar el COCHE ---
-                    // Asignamos la FK de la marca al coche y guardamos
-                    val vehicleWithBrandId = vehicleEntity.copy(brandOwnerId = brandId)
-                    val vehicleId = dao.insertVehicle(vehicleWithBrandId)
-
-                    // --- PASO 3: Guardar la FICHA TÉCNICA ---
-                    // Asignamos la FK del coche a la ficha y guardamos
-                    val specsWithVehicleId = specsEntity.copy(vehicleOwnerId = vehicleId)
-                    dao.insertTechnicalSpecs(specsWithVehicleId)
-
-                    // --- PASO 4: Guardar los EXTRAS (Relación N:M) ---
-                    remoteVehicle.extras.forEach { remoteExtra ->
-                        // Convertir extra remoto a entidad
-                        val extraEntity = remoteExtra.toEntity()
-
-                        // Guardar el extra (o recuperar su ID si ya existía)
-                        val extraId = dao.insertExtra(extraEntity) // Asume que devuelve Long
-
-                        // Crear la relación en la tabla cruce
-                        val crossRef = VehicleExtraCrossRef(vehicleId, extraId)
-                        dao.insertVehicleExtraCrossRef(crossRef)
-                    }
+                    insertRemoteVehicleIntoRoom(remoteVehicle)
                 }
             }
-            // En ShopRepository.kt
         } catch (e: Exception) {
-            // Esto imprimirá el error real en la consola de Android Studio (Logcat) en rojo
-            android.util.Log.e("ShopRepository", "Error al descargar datos: ${e.message}")
+            Log.e("ShopRepository", "Error al refrescar datos: ${e.message}")
             e.printStackTrace()
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. CREACIÓN (POST)
+    // -------------------------------------------------------------------------
+    suspend fun addVehicle(vehicle: VehicleRemote) {
+        try {
+            // A. Primero subimos a la Nube (API)
+            // La API nos devuelve el objeto creado con su ID final asignado por el servidor
+            val createdRemoteVehicle = api.createVehicle(vehicle)
+
+            // B. Guardamos ese objeto confirmado en Room (incluyendo extras)
+            insertRemoteVehicleIntoRoom(createdRemoteVehicle)
+
+        } catch (e: Exception) {
+            Log.e("ShopRepository", "Error al crear vehículo: ${e.message}")
+            throw e // Relanzamos para que el ViewModel sepa que falló y muestre un error
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. BORRADO (DELETE)
+    // -------------------------------------------------------------------------
+    suspend fun deleteVehicle(vehicleId: Long) {
+        try {
+            // A. Borrar de la API
+            api.deleteVehicle(vehicleId)
+
+            // B. Borrar de Room
+            // Al borrar el coche, el "Cascade" de Room borrará Ficha y Relaciones de Extras automáticamente
+            dao.deleteVehicleById(vehicleId)
+
+        } catch (e: Exception) {
+            Log.e("ShopRepository", "Error al eliminar vehículo: ${e.message}")
+            throw e
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. UPDATE (PUT) - Opcional, si lo pide el enunciado
+    // -------------------------------------------------------------------------
+    suspend fun updateVehicle(id: Long, vehicle: VehicleRemote) {
+        try {
+            val updatedRemote = api.updateVehicle(id, vehicle)
+            // Una forma simple de actualizar en local es borrar e insertar de nuevo
+            dao.deleteVehicleById(id)
+            insertRemoteVehicleIntoRoom(updatedRemote)
+        } catch (e: Exception) {
+            Log.e("ShopRepository", "Error al actualizar: ${e.message}")
+            throw e
+        }
+    }
+
+
+    // -------------------------------------------------------------------------
+    // FUNCIÓN PRIVADA AUXILIAR (Aquí está la lógica de los Extras)
+    // -------------------------------------------------------------------------
+    /**
+     * Esta función se encarga de desmenuzar el objeto remoto y guardar
+     * Marca, Coche, Ficha y Extras en sus respectivas tablas.
+     */
+    private suspend fun insertRemoteVehicleIntoRoom(remoteVehicle: VehicleRemote) {
+
+        // 1. Usamos el Mapper para obtener las entidades principales
+        val (vehicleEntity, brandEntity, specsEntity) = remoteVehicle.toEntityTriple()
+
+        // 2. Insertar MARCA
+        // Room nos devuelve el ID de la fila insertada (o existente)
+        val brandId = dao.insertBrand(brandEntity)
+
+        // 3. Insertar VEHÍCULO
+        // Asignamos el ID de la marca al coche (Foreign Key)
+        // IMPORTANTE: Nos aseguramos de usar el ID que viene de la API si existe
+        val vehicleWithBrand = vehicleEntity.copy(
+            vehicleId = remoteVehicle.id ?: 0,
+            brandOwnerId = brandId
+        )
+        val vehicleId = dao.insertVehicle(vehicleWithBrand)
+
+        // 4. Insertar FICHA TÉCNICA
+        // Asignamos el ID del coche a la ficha (Foreign Key)
+        val specsWithVehicle = specsEntity.copy(vehicleOwnerId = vehicleId)
+        dao.insertTechnicalSpecs(specsWithVehicle)
+
+        // 5. Insertar EXTRAS (Lógica N:M)
+        remoteVehicle.extras.forEach { remoteExtra ->
+            // A. Convertir el extra remoto a entidad
+            val extraEntity = remoteExtra.toEntity()
+
+            // B. Insertar el Extra en la tabla 'extras' y obtener su ID
+            val extraId = dao.insertExtra(extraEntity)
+
+            // C. Insertar la relación en la tabla cruce 'vehicle_extra_cross_ref'
+            // Esto conecta este coche concreto (vehicleId) con este extra concreto (extraId)
+            val crossRef = VehicleExtraCrossRef(
+                vehicleId = vehicleId,
+                extraId = extraId
+            )
+            dao.insertVehicleExtraCrossRef(crossRef)
         }
     }
 }

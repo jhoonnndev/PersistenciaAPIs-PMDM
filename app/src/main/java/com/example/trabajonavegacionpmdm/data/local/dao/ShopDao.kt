@@ -23,6 +23,7 @@ interface ShopDao {
 
     // CRUD
 
+
     //CREATE
 
     // Insertar Marca
@@ -53,4 +54,8 @@ interface ShopDao {
     // Borrar todos los coches (para cada vez que cargue la app se borren los datos y actualicen de la api)
     @Query("DELETE FROM vehicles")
     suspend fun deleteAllVehicles()
+    @Query("DELETE FROM vehicles WHERE vehicleId = :id")
+    suspend fun deleteVehicleById(id: Long)
+
+
 }
