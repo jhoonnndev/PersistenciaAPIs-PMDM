@@ -11,41 +11,69 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditScreen(
+    navController: NavController,
     viewModel: ShopViewModel,
-    onBackClick: () -> Unit
+    vehicleId: Long = 0L // Recibimos el ID (0 = Crear, >0 = Editar)
 ) {
-    // Estados locales para el formulario
-    var brand by remember { mutableStateOf("") }
-    var country by remember { mutableStateOf("") }
+    // Variables de estado para el formulario
     var model by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
+    var brandName by remember { mutableStateOf("") }
+    var country by remember { mutableStateOf("") }
     var horsePower by remember { mutableStateOf("") }
+    var engineType by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
-    var engine by remember { mutableStateOf("") }
 
-    // Observamos el mensaje global para saber si se guardó bien
     val uiMessage by viewModel.uiMessage.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // Efecto: Si el mensaje es de éxito, volvemos atrás automáticamente
+    // 1. EFECTO DE CARGA: Si es modo EDITAR, rellenamos los campos
+    LaunchedEffect(vehicleId) {
+        if (vehicleId != 0L) {
+            // Pedimos al ViewModel que busque el coche por ID
+            val vehicleToEdit = viewModel.getVehicleById(vehicleId.toInt())
+
+            vehicleToEdit?.let { v ->
+                // Rellenamos los campos con los datos existentes
+                model = v.vehicle.model
+                price = v.vehicle.price.toString()
+                imageUrl = v.vehicle.imageUrl
+                brandName = v.brand.name
+                country = v.brand.country
+                horsePower = v.technicalSpecs?.horsePower?.toString() ?: ""
+                engineType = v.technicalSpecs?.engineType ?: ""
+                weight = v.technicalSpecs?.weight?.toString() ?: ""
+            }
+        }
+    }
+
+    // 2. EFECTO DE MENSAJE: Si hay éxito, volvemos atrás
     LaunchedEffect(uiMessage) {
-        if (uiMessage == "¡Vehículo creado con éxito!") {
-            onBackClick()
-            viewModel.clearMessage() // Limpiamos para que no vuelva a saltar
+        uiMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessage()
+            if (it.contains("correctamente") || it.contains("éxito")) {
+                navController.popBackStack()
+            }
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Nuevo Vehículo") },
+                // Título dinámico
+                title = { Text(if (vehicleId == 0L) "Nuevo Vehículo" else "Editar Vehículo") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 }
@@ -56,107 +84,49 @@ fun AddEditScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState()), // Scroll por si el teclado tapa campos
+                .verticalScroll(rememberScrollState()), // Hacemos scrollable por si el teclado tapa
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Sección 1: Datos de la Marca
-            Text("Marca", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            OutlinedTextField(
-                value = brand,
-                onValueChange = { brand = it },
-                label = { Text("Nombre Marca (Ej. Toyota)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = country,
-                onValueChange = { country = it },
-                label = { Text("País de origen") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            // --- CAMPOS DEL FORMULARIO ---
+            OutlinedTextField(value = model, onValueChange = { model = it }, label = { Text("Modelo") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Precio") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = { Text("URL Imagen") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = brandName, onValueChange = { brandName = it }, label = { Text("Marca") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = country, onValueChange = { country = it }, label = { Text("País") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = horsePower, onValueChange = { horsePower = it }, label = { Text("Caballos (HP)") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = engineType, onValueChange = { engineType = it }, label = { Text("Tipo Motor") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = weight, onValueChange = { weight = it }, label = { Text("Peso (kg)") }, modifier = Modifier.fillMaxWidth())
 
-            Divider()
-
-            // Sección 2: Datos del Vehículo
-            Text("Vehículo", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            OutlinedTextField(
-                value = model,
-                onValueChange = { model = it },
-                label = { Text("Modelo (Ej. Corolla)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = price,
-                onValueChange = { price = it },
-                label = { Text("Precio (€)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = imageUrl,
-                onValueChange = { imageUrl = it },
-                label = { Text("URL de la Imagen") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("https://...") }
-            )
-
-            Divider()
-
-            // Sección 3: Ficha Técnica
-            Text("Ficha Técnica", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = horsePower,
-                    onValueChange = { horsePower = it },
-                    label = { Text("Potencia (CV)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-                OutlinedTextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    label = { Text("Peso (Kg)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            OutlinedTextField(
-                value = engine,
-                onValueChange = { engine = it },
-                label = { Text("Motor (Ej. Híbrido, Gasolina)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón Guardar
+            // --- BOTÓN DE GUARDAR ---
             Button(
                 onClick = {
-                    // Validación simple
-                    if (model.isNotEmpty() && price.isNotEmpty() && brand.isNotEmpty()) {
-                        viewModel.addVehicle(
-                            model = model,
-                            price = price.toDoubleOrNull() ?: 0.0,
-                            imageUrl = imageUrl,
-                            brandName = brand,
-                            country = country,
-                            horsePower = horsePower.toIntOrNull() ?: 0,
-                            engineType = engine,
-                            weight = weight.toDoubleOrNull() ?: 0.0
-                        )
+                    // Validamos que al menos haya modelo y precio
+                    if (model.isNotBlank() && price.isNotBlank()) {
+                        if (vehicleId == 0L) {
+                            // MODO CREAR
+                            viewModel.addVehicle(
+                                model, price.toDoubleOrNull() ?: 0.0, imageUrl, brandName, country,
+                                horsePower.toIntOrNull() ?: 0, engineType, weight.toDoubleOrNull() ?: 0.0
+                            )
+                        } else {
+                            // MODO EDITAR (Usamos la nueva función)
+                            viewModel.updateVehicle(
+                                id = vehicleId, // Pasamos el ID original
+                                model = model,
+                                price = price.toDoubleOrNull() ?: 0.0,
+                                imageUrl = imageUrl,
+                                brandName = brandName,
+                                country = country,
+                                horsePower = horsePower.toIntOrNull() ?: 0,
+                                engineType = engineType,
+                                weight = weight.toDoubleOrNull() ?: 0.0
+                            )
+                        }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("GUARDAR VEHÍCULO")
-            }
-
-            // Mensaje de error (si hubo fallo al guardar)
-            if (uiMessage != null && uiMessage != "¡Vehículo creado con éxito!") {
-                Text(
-                    text = uiMessage ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+                Text(if (vehicleId == 0L) "Crear Vehículo" else "Guardar Cambios")
             }
         }
     }

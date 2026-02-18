@@ -1,5 +1,6 @@
 package com.example.trabajonavegacionpmdm.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,7 +23,8 @@ import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 fun ManagementScreen(
     viewModel: ShopViewModel,
     onAddClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onEditClick: (Long) -> Unit
 ) {
     // 1. Observamos la lista de vehículos desde la BBDD
     val vehicles by viewModel.vehiclesState.collectAsState()
@@ -63,17 +65,28 @@ fun ManagementScreen(
                 Text("No hay vehículos. ¡Añade uno!")
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(vehicles) { vehicle ->
-                    EmployeeVehicleItem(
-                        vehicle = vehicle,
-                        onDeleteClick = { viewModel.deleteVehicle(vehicle) }
-                    )
+            LazyColumn(modifier = Modifier.padding(padding)) {
+                items(vehicles) { vehiclePopulated -> // vehiclePopulated es el objeto completo
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                // AQUÍ ESTÁ LA CLAVE: Navegamos pasando el ID del coche
+                                val id = vehiclePopulated.vehicle.vehicleId
+                                onEditClick(id)
+                            }
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Muestra Marca + Modelo
+                        Text(text = "${vehiclePopulated.brand.name} ${vehiclePopulated.vehicle.model}")
+
+                        // Botón de borrar (ese ya lo tenías)
+                        IconButton(onClick = { viewModel.deleteVehicle(vehiclePopulated) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
+                        }
+                    }
                 }
             }
         }

@@ -130,7 +130,49 @@ class ShopViewModel(
         }
     }
 
+    // En tu archivo ShopViewModel.kt
+
+// ... el resto de tu código ...
+
+    // Añade esta función para conectar la UI con el Repositorio
+    fun updateVehicle(
+        id: Long,
+        model: String,
+        price: Double,
+        imageUrl: String,
+        brandName: String,
+        country: String,
+        horsePower: Int,
+        engineType: String,
+        weight: Double
+    ) {
+        viewModelScope.launch {
+            try {
+                // Creamos el objeto con los datos editados
+                // Es IMPORTANTE pasar el 'id' original para que la API sepa cuál actualizar
+                val vehicleToUpdate = VehicleRemote(
+                    id = id,
+                    model = model,
+                    price = price,
+                    imageUrl = imageUrl,
+                    brand = BrandRemote(name = brandName, country = country, urlLogo = ""),
+                    specs = SpecsRemote(horsePower = horsePower, engineType = engineType, weight = weight),
+                    extras = emptyList() // Si tu app no edita extras, enviamos lista vacía o la actual si la tuvieras
+                )
+
+                // Llamamos al método que ya tienes listo en el repositorio
+                repository.updateVehicle(id, vehicleToUpdate)
+                _uiMessage.value = "¡Vehículo actualizado correctamente!"
+            } catch (e: Exception) {
+                _uiMessage.value = "Error al actualizar: ${e.message}"
+            }
+        }
+    }
+
+
     fun clearMessage() {
         _uiMessage.value = null
     }
+
+
 }

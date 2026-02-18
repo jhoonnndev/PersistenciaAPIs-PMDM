@@ -15,6 +15,7 @@ import com.example.trabajonavegacionpmdm.ui.screens.*
 import com.example.trabajonavegacionpmdm.ui.theme.TrabajoNavegacionPMDMTheme
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,17 +77,31 @@ class MainActivity : ComponentActivity() {
                     composable("management") {
                         ManagementScreen(
                             viewModel = viewModel,
-                            onAddClick = { navController.navigate("add_edit") },
-                            onBackClick = { navController.popBackStack() }
+                            onAddClick = { navController.navigate("add_edit_screen") },
+                            onBackClick = { navController.popBackStack() },
+                            onEditClick = { vehicleId ->
+                                navController.navigate("add_edit_screen?vehicleId=$vehicleId")
+                            }
                         )
                     }
 
                     // 7. FORMULARIO (EMPLEADO)
-                    composable("add_edit") {
-                        AddEditScreen(
-                            viewModel = viewModel,
-                            onBackClick = { navController.popBackStack() }
+                    // EN MainActivity.kt
+                    // Ruta para Añadir/Editar Vehículo
+                    composable(
+                        route = "add_edit_screen?vehicleId={vehicleId}", // ? indica parámetro opcional
+                        arguments = listOf(
+                            navArgument("vehicleId") {
+                                type = NavType.LongType
+                                defaultValue = 0L // Si no pasamos ID, asumimos que es 0 (CREAR)
+                            }
                         )
+                    ) { backStackEntry ->
+                        // Recuperamos el ID que viene en la navegación
+                        val vehicleId = backStackEntry.arguments?.getLong("vehicleId") ?: 0L
+
+                        // Se lo pasamos a la pantalla
+                        AddEditScreen(navController, viewModel, vehicleId)
                     }
                 }
             }
