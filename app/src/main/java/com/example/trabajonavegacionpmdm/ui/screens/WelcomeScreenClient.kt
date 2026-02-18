@@ -1,110 +1,172 @@
 package com.example.trabajonavegacionpmdm.ui.screens
 
-import android.app.DatePickerDialog
-import android.widget.DatePicker
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.trabajonavegacionpmdm.R
-import java.util.Calendar
+import java.time.Instant
+import java.time.LocalDate
+import java.time.Period
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
+// BIENVENIDA CLIENTE
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomeScreenClient(
-    onAgeVerified: () -> Unit,
-    onUnderage: () -> Unit,
-    onBackClick: () -> Unit // <--- NUEVO: Acción para volver atrás
-) {
+fun WelcomeScreenClient(navController: NavController) { // <--- Nombre cambiado para coincidir
+    // Estado para el selector de fecha
+    val datePickerState = rememberDatePickerState()
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDateText by remember { mutableStateOf("") }
+    var calculatedAge by remember { mutableStateOf<Int?>(null) }
+
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH)
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
-            val userAge = year - selectedYear
-            val isAdult = if (userAge > 18) {
-                true
-            } else if (userAge == 18) {
-                if (month > selectedMonth) true
-                else if (month == selectedMonth) day >= selectedDay
-                else false
-            } else {
-                false
-            }
-
-            if (isAdult) {
-                onAgeVerified()
-            } else {
-                onUnderage()
-            }
-        }, year, month, day
-    )
 
     Scaffold(
-        // --- AÑADIDA BARRA SUPERIOR CON FLECHA ATRÁS ---
         topBar = {
             TopAppBar(
-                title = { Text("Verificación de Edad") }, // Opcional: Texto o vacío
+                title = { Text(text = stringResource(R.string.app_name)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    // Usamos un Row para poner la flecha a la izquierda del icono del coche
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // 1. Botón de retroceso
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Volver al inicio"
+                            )
+                        }
+                        // 2. Icono del coche (Logo)
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            painter = painterResource(R.drawable.car_shopping),
+                            contentDescription = "Icono de coche",
+                            modifier = Modifier.size(30.dp) // Ajuste ligero de tamaño
                         )
                     }
                 }
             )
         }
-    ) { padding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(innerPadding)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.car_shopping),
-                contentDescription = "Logo App",
-                modifier = Modifier.size(200.dp)
+            Text("Bienvenido al Concesionario", style = MaterialTheme.typography.headlineMedium)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo de texto de solo lectura que abre el calendario
+            OutlinedTextField(
+                value = selectedDateText,
+                onValueChange = { },
+                label = { Text("Introduzca su fecha de Nacimiento") },
+                readOnly = true, // No dejar escribir, solo tocar
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Seleccionar fecha"
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true }
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Button(onClick = {
+                if (calculatedAge != null) {
+                    if (calculatedAge!! >= 18) {
+                        navController.navigate("home")
+                    } else {
+                        navController.navigate("law_info")
+                    }
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Por favor selecciona tu fecha de nacimiento",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }) {
+                Text("Entrar")
+            }
+        }
 
-            Text(
-                text = "Bienvenido a PMDM Cars",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center
-            )
+        // Componente del Calendario (Dialog) -- Calcular si es mayor de edad
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            // 1. Convertir milisegundos a LocalDate
+                            val selectedDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
 
-            Spacer(modifier = Modifier.height(8.dp))
+                            // 2. Calcular edad exacta
+                            val currentDate = LocalDate.now()
+                            val period = Period.between(selectedDate, currentDate)
 
-            Text(
-                text = "Tu concesionario de confianza",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.secondary
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Button(
-                onClick = { datePickerDialog.show() },
-                modifier = Modifier.fillMaxWidth(0.7f).height(50.dp)
+                            // 3. Guardar datos
+                            calculatedAge = period.years
+                            selectedDateText =
+                                selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text("Aceptar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancelar")
+                    }
+                }
             ) {
-                Text("VERIFICAR EDAD Y ENTRAR")
+                DatePicker(state = datePickerState)
             }
         }
     }

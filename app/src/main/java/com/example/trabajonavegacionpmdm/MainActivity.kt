@@ -42,11 +42,7 @@ class MainActivity : ComponentActivity() {
 
                     // 2. PANTALLA BIENVENIDA CLIENTE (Con validación de edad)
                     composable("client_welcome") {
-                        WelcomeScreenClient(
-                            onAgeVerified = { navController.navigate("home") },
-                            onUnderage = { navController.navigate("law_info") },
-                            onBackClick = { navController.popBackStack() } // <--- AÑADIDO: Vuelve a WelcomeScreen
-                        )
+                        WelcomeScreenClient(navController = navController)
                     }
 
                     // 2. PANTALLA HOME (CLIENTE)

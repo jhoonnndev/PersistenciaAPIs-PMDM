@@ -1,10 +1,12 @@
 package com.example.trabajonavegacionpmdm.ui.viewmodel
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.trabajonavegacionpmdm.data.local.entities.ExtraFeatureEntity
 import com.example.trabajonavegacionpmdm.data.local.relations.VehiclePopulated
 import com.example.trabajonavegacionpmdm.data.remote.model.BrandRemote
 import com.example.trabajonavegacionpmdm.data.remote.model.SpecsRemote
@@ -32,18 +34,55 @@ class ShopViewModel(
         )
 
     // -------------------------------------------------------------------------
-    // 2. ESTADO DEL CARRITO (Memoria Temporal) - ¡LO QUE FALTABA!
+    // 2. ESTADO DEL CARRITO Y CONFIGURACIÓN (Modificado)
     // -------------------------------------------------------------------------
-    // Usamos mutableStateOf para que Compose se entere de los cambios inmediatos
+
     var selectedVehicle: VehiclePopulated? by mutableStateOf(null)
         private set
 
-    var selectedQuantity: Int by mutableStateOf(0)
+    var selectedQuantity: Int by mutableStateOf(1)
         private set
 
-    // Propiedad computada: Calcula el total automáticamente
+    // NUEVO: Lista de extras que el usuario ha marcado con el Checkbox
+    private val _selectedExtras = mutableStateListOf<ExtraFeatureEntity>()
+    val selectedExtras: List<ExtraFeatureEntity> get() = _selectedExtras
+
+    // NUEVO: Precio Total Dinámico (Base + Extras * Cantidad)
     val totalPrice: Double
-        get() = (selectedVehicle?.vehicle?.price ?: 0.0) * selectedQuantity
+        get() {
+            val basePrice = selectedVehicle?.vehicle?.price ?: 0.0
+            val extrasPrice = _selectedExtras.sumOf { it.price }
+            return (basePrice + extrasPrice) * selectedQuantity
+        }
+
+    // -------------------------------------------------------------------------
+    // ACCIONES DE CONFIGURACIÓN (Llamadas desde DetailsScreen)
+    // -------------------------------------------------------------------------
+
+    // Al entrar al detalle, preparamos el vehículo y limpiamos extras anteriores
+    fun selectVehicleById(id: Int) {
+        val found = vehiclesState.value.find { it.vehicle.vehicleId == id.toLong() }
+        if (found != null && found != selectedVehicle) {
+            selectedVehicle = found
+            selectedQuantity = 1
+            _selectedExtras.clear() // Empezamos sin extras marcados
+        }
+    }
+
+    // Activar/Desactivar un extra
+    fun toggleExtra(extra: ExtraFeatureEntity) {
+        if (_selectedExtras.contains(extra)) {
+            _selectedExtras.remove(extra)
+        } else {
+            _selectedExtras.add(extra)
+        }
+    }
+
+    fun setQuantity(qty: Int) {
+        selectedQuantity = qty
+    }
+
+    // Confirmar compra (solo limpiamos selección visual, el carrito ya tiene los datos en las variables de arriba)
 
     // -------------------------------------------------------------------------
     // 3. ESTADO DE MENSAJES (Feedback)
@@ -63,12 +102,11 @@ class ShopViewModel(
         selectedVehicle = vehicle
         selectedQuantity = quantity
     }
-
     fun clearCart() {
         selectedVehicle = null
-        selectedQuantity = 0
+        selectedQuantity = 1
+        _selectedExtras.clear()
     }
-
     // Función auxiliar para buscar un coche por ID dentro de la lista que ya tenemos en memoria
     // Esto es necesario para la DetailsScreen
     fun getVehicleById(id: Int): VehiclePopulated? {

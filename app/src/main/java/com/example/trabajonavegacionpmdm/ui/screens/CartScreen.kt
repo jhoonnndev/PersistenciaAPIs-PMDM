@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
@@ -15,13 +16,14 @@ import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 @Composable
 fun CartScreen(navController: NavController, viewModel: ShopViewModel) {
     val vehicle = viewModel.selectedVehicle
+    val extras = viewModel.selectedExtras // Lista de extras seleccionados
     val quantity = viewModel.selectedQuantity
     val total = viewModel.totalPrice
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Carrito") },
+                title = { Text("Resumen del Pedido") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
@@ -31,28 +33,77 @@ fun CartScreen(navController: NavController, viewModel: ShopViewModel) {
         }
     ) { padding ->
         Column(
-            modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (vehicle != null) {
-                Text("Resumen de compra", style = MaterialTheme.typography.headlineSmall)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Vehículo: ${vehicle.vehicle.model}")
-                Text("Cantidad: $quantity")
-                Text("Precio unitario: ${vehicle.vehicle.price} €")
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Total a pagar: $total €", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "${vehicle.brand.name} ${vehicle.vehicle.model}",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(onClick = {
-                    viewModel.clearCart()
-                    navController.navigate("home")
-                }) {
+                        // Desglose
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Precio Base:")
+                            Text("${vehicle.vehicle.price} €")
+                        }
+
+                        // Lista de extras en el ticket
+                        if (extras.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Extras seleccionados:", style = MaterialTheme.typography.labelLarge)
+                            extras.forEach { extra ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("• ${extra.name}", style = MaterialTheme.typography.bodySmall)
+                                    Text("+${extra.price} €", style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Cantidad:")
+                            Text("x$quantity")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Total Grande
+                Text("Total a Pagar", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "$total €",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        viewModel.clearCart()
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
                     Text("Finalizar Compra")
                 }
             } else {
-                Text("El carrito está vacío")
+                Text("Tu carrito está vacío :(")
             }
         }
     }
