@@ -4,7 +4,7 @@
       "id": 1,
       "model": "Model S Plaid",
       "price": 109990.0,
-      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/2018_Tesla_Model_S_75D.jpg/1920px-2018_Tesla_Model_S_75D.jpg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/2018_Tesla_Model_S_75D.jpg/800px-2018_Tesla_Model_S_75D.jpg",
       "brand": {
         "name": "Tesla",
         "country": "USA",
@@ -28,7 +28,7 @@
       "id": 2,
       "model": "Mustang GT",
       "price": 55000.0,
-      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/2018_Ford_Mustang_GT_5.0.jpg/1920px-2018_Ford_Mustang_GT_5.0.jpg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/2018_Ford_Mustang_GT_5.0.jpg/800px-2018_Ford_Mustang_GT_5.0.jpg",
       "brand": {
         "name": "Ford",
         "country": "USA",
@@ -52,7 +52,7 @@
       "id": 3,
       "model": "911 Carrera",
       "price": 140000.0,
-      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Porsche_911_Carrera_4S_%28992%29_IMG_3655.jpg/1920px-Porsche_911_Carrera_4S_%28992%29_IMG_3655.jpg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Porsche_911_Carrera_4S_%28992%29_IMG_3655.jpg/800px-Porsche_911_Carrera_4S_%28992%29_IMG_3655.jpg",
       "brand": {
         "name": "Porsche",
         "country": "Alemania",
