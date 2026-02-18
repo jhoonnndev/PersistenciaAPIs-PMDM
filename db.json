@@ -16,8 +16,12 @@
         "weight": 2162.0
       },
       "extras": [
-        { "id": 101, "name": "Autopilot", "price": 3800.0 },
-        { "id": 102, "name": "Llantas 21", "price": 4500.0 }
+        { "id": 101, "name": "Techo Solar Panorámico", "price": 1200.0 },
+        { "id": 102, "name": "Asientos de Cuero Premium", "price": 2500.0 },
+        { "id": 103, "name": "Pintura Metalizada", "price": 600.0 },
+        { "id": 104, "name": "Sistema de Sonido Bose", "price": 1500.0 },
+        { "id": 105, "name": "Asistente de Aparcamiento", "price": 850.0 },
+        { "id": 106, "name": "Faros LED Matrix", "price": 1800.0 }
       ]
     },
     {
@@ -36,7 +40,12 @@
         "weight": 1700.0
       },
       "extras": [
-        { "id": 103, "name": "Alerón", "price": 1200.0 }
+        { "id": 101, "name": "Techo Solar Panorámico", "price": 1200.0 },
+        { "id": 102, "name": "Asientos de Cuero Premium", "price": 2500.0 },
+        { "id": 103, "name": "Pintura Metalizada", "price": 600.0 },
+        { "id": 104, "name": "Sistema de Sonido Bose", "price": 1500.0 },
+        { "id": 105, "name": "Asistente de Aparcamiento", "price": 850.0 },
+        { "id": 106, "name": "Faros LED Matrix", "price": 1800.0 }
       ]
     },
     {
@@ -55,7 +64,12 @@
         "weight": 1500.0
       },
       "extras": [
-        { "id": 104, "name": "Paquete Sport", "price": 5000.0 }
+        { "id": 101, "name": "Techo Solar Panorámico", "price": 1200.0 },
+        { "id": 102, "name": "Asientos de Cuero Premium", "price": 2500.0 },
+        { "id": 103, "name": "Pintura Metalizada", "price": 600.0 },
+        { "id": 104, "name": "Sistema de Sonido Bose", "price": 1500.0 },
+        { "id": 105, "name": "Asistente de Aparcamiento", "price": 850.0 },
+        { "id": 106, "name": "Faros LED Matrix", "price": 1800.0 }
       ]
     }
   ]
