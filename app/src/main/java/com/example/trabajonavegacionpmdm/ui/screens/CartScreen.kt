@@ -1,15 +1,21 @@
 package com.example.trabajonavegacionpmdm.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape // <-- Import añadido
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip // <-- Import añadido
+import androidx.compose.ui.layout.ContentScale // <-- Import añadido
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage // <-- Import añadido
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +55,18 @@ fun CartScreen(navController: NavController, viewModel: ShopViewModel) {
                         Text(
                             text = "${vehicle.brand.name} ${vehicle.vehicle.model}",
                             style = MaterialTheme.typography.headlineSmall
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        AsyncImage(
+                            model = vehicle.vehicle.imageUrl,
+                            contentDescription = vehicle.vehicle.model,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
                         )
                         Divider(modifier = Modifier.padding(vertical = 8.dp))
 

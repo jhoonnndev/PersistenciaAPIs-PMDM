@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -12,7 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.trabajonavegacionpmdm.data.local.relations.VehiclePopulated
@@ -26,14 +29,10 @@ fun ManagementScreen(
     onBackClick: () -> Unit,
     onEditClick: (Long) -> Unit
 ) {
-    // 1. Observamos la lista de vehículos desde la BBDD
     val vehicles by viewModel.vehiclesState.collectAsState()
-
-    // 2. Observamos mensajes (ej. "Coche eliminado")
     val uiMessage by viewModel.uiMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Mostramos SnackBar si hay mensaje
     LaunchedEffect(uiMessage) {
         uiMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -59,34 +58,23 @@ fun ManagementScreen(
             }
         }
     ) { padding ->
-        // 3. Lista de Coches
         if (vehicles.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text("No hay vehículos. ¡Añade uno!")
             }
         } else {
-            LazyColumn(modifier = Modifier.padding(padding)) {
-                items(vehicles) { vehiclePopulated -> // vehiclePopulated es el objeto completo
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                // AQUÍ ESTÁ LA CLAVE: Navegamos pasando el ID del coche
-                                val id = vehiclePopulated.vehicle.vehicleId
-                                onEditClick(id)
-                            }
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Muestra Marca + Modelo
-                        Text(text = "${vehiclePopulated.brand.name} ${vehiclePopulated.vehicle.model}")
-
-                        // Botón de borrar (ese ya lo tenías)
-                        IconButton(onClick = { viewModel.deleteVehicle(vehiclePopulated) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
-                        }
-                    }
+            LazyColumn(
+                modifier = Modifier.padding(padding),
+                contentPadding = PaddingValues(16.dp), // Un poco de margen para que respire
+                verticalArrangement = Arrangement.spacedBy(8.dp) // Espacio entre tarjetas
+            ) {
+                items(vehicles) { vehiclePopulated ->
+                    // ¡AQUÍ ESTABA EL ERROR! Ahora sí llamamos a tu tarjeta
+                    EmployeeVehicleItem(
+                        vehicle = vehiclePopulated,
+                        onEditClick = { onEditClick(vehiclePopulated.vehicle.vehicleId) }, // Pasamos el clic para editar
+                        onDeleteClick = { viewModel.deleteVehicle(vehiclePopulated) } // Pasamos el clic para borrar
+                    )
                 }
             }
         }
@@ -96,10 +84,15 @@ fun ManagementScreen(
 @Composable
 fun EmployeeVehicleItem(
     vehicle: VehiclePopulated,
+    onEditClick: () -> Unit, // Añadimos esto para poder editar
     onDeleteClick: () -> Unit
 ) {
     Card(
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        // Hacemos que toda la tarjeta sea clickable para ir a editar
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEditClick() }
     ) {
         Row(
             modifier = Modifier
@@ -107,11 +100,14 @@ fun EmployeeVehicleItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Imagen pequeña
+            // Imagen pequeña (¡Ahora sí se verá!)
             AsyncImage(
                 model = vehicle.vehicle.imageUrl,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp)
+                contentDescription = vehicle.vehicle.model,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.width(16.dp))
