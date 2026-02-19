@@ -28,7 +28,7 @@
       "id": 2,
       "model": "Mustang GT",
       "price": 55000.0,
-      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/2018_Ford_Mustang_GT_5.0.jpg/1920px-2018_Ford_Mustang_GT_5.0.jpg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/2018_Ford_Mustang_GT_5.0.jpg/800px-2018_Ford_Mustang_GT_5.0.jpg",
       "brand": {
         "name": "Ford",
         "country": "USA",
