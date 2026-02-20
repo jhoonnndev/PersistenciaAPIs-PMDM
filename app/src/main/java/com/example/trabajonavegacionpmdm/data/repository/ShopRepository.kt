@@ -14,9 +14,7 @@ class ShopRepository(
     private val api: ShopApi,
     private val dao: ShopDao
 ) {
-    // -------------------------------------------------------------------------
     // 1. LECTURA (Single Source of Truth)
-    // -------------------------------------------------------------------------
     // La UI siempre observa este Flow. Si insertamos algo abajo, esto se actualiza solo.
     val vehicles: Flow<List<VehiclePopulated>> = dao.getAllVehicles()
 
@@ -24,15 +22,13 @@ class ShopRepository(
         return dao.getVehicleById(id)
     }
 
-    // -------------------------------------------------------------------------
     // 2. SINCRONIZACIÓN (GET)
-    // -------------------------------------------------------------------------
     suspend fun refreshData() {
         try {
-            // A. Descargar lista de la API
+            // 1. Descargar lista de la API
             val remoteVehicles = api.getVehicles()
 
-            // B. Si hay datos, limpiamos la caché local y guardamos los nuevos
+            // 2. Si hay datos, limpiamos la caché local y guardamos los nuevos
             if (remoteVehicles.isNotEmpty()) {
                 dao.deleteAllVehicles() // Borrón y cuenta nueva
 
@@ -47,33 +43,29 @@ class ShopRepository(
         }
     }
 
-    // -------------------------------------------------------------------------
     // 3. CREACIÓN (POST)
-    // -------------------------------------------------------------------------
     suspend fun addVehicle(vehicle: VehicleRemote) {
         try {
-            // A. Primero subimos a la Nube (API)
+            // 1. Primero subimos a la Nube (API)
             // La API nos devuelve el objeto creado con su ID final asignado por el servidor
             val createdRemoteVehicle = api.createVehicle(vehicle)
 
-            // B. Guardamos ese objeto confirmado en Room (incluyendo extras)
+            // 2. Guardamos ese objeto confirmado en Room (incluyendo extras)
             insertRemoteVehicleIntoRoom(createdRemoteVehicle)
 
         } catch (e: Exception) {
             Log.e("ShopRepository", "Error al crear vehículo: ${e.message}")
-            throw e // Relanzamos para que el ViewModel sepa que falló y muestre un error
+            throw e
         }
     }
 
-    // -------------------------------------------------------------------------
     // 4. BORRADO (DELETE)
-    // -------------------------------------------------------------------------
     suspend fun deleteVehicle(vehicleId: Long) {
         try {
-            // A. Borrar de la API
+            // 1. Borrar de la API
             api.deleteVehicle(vehicleId)
 
-            // B. Borrar de Room
+            // 2. Borrar de Room
             // Al borrar el coche, el "Cascade" de Room borrará Ficha y Relaciones de Extras automáticamente
             dao.deleteVehicleById(vehicleId)
 
@@ -83,13 +75,10 @@ class ShopRepository(
         }
     }
 
-    // -------------------------------------------------------------------------
-    // 5. UPDATE (PUT) - Opcional, si lo pide el enunciado
-    // -------------------------------------------------------------------------
+    // 5. UPDATE (PUT)
     suspend fun updateVehicle(id: Long, vehicle: VehicleRemote) {
         try {
             val updatedRemote = api.updateVehicle(id, vehicle)
-            // Una forma simple de actualizar en local es borrar e insertar de nuevo
             dao.deleteVehicleById(id)
             insertRemoteVehicleIntoRoom(updatedRemote)
         } catch (e: Exception) {
@@ -99,9 +88,7 @@ class ShopRepository(
     }
 
 
-    // -------------------------------------------------------------------------
     // FUNCIÓN PRIVADA AUXILIAR (Aquí está la lógica de los Extras)
-    // -------------------------------------------------------------------------
     /**
      * Esta función se encarga de desmenuzar el objeto remoto y guardar
      * Marca, Coche, Ficha y Extras en sus respectivas tablas.

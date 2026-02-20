@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 interface ShopDao {
 
     // Usamos Transaction porque accede a varias tablas
-
     // Obtener todos los coches con TODOS sus datos (Marca, ficha, extras)
     // Devuelve Flow para reactividad en tiempo real
     @Transaction
@@ -47,7 +46,6 @@ interface ShopDao {
     suspend fun insertVehicleExtraCrossRef(crossRef: VehicleExtraCrossRef)
 
     // REMOVE
-
     @Delete
     suspend fun deleteVehicle(vehicle: VehicleEntity)
 

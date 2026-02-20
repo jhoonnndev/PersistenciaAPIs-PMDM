@@ -22,10 +22,7 @@ import kotlinx.coroutines.launch
 class ShopViewModel(
     private val repository: ShopRepository
 ) : ViewModel() {
-
-    // -------------------------------------------------------------------------
     // 1. ESTADO DE LA BBDD (Lista de Coches Persistentes)
-    // -------------------------------------------------------------------------
     val vehiclesState: StateFlow<List<VehiclePopulated>> = repository.vehicles
         .stateIn(
             scope = viewModelScope,
@@ -33,17 +30,14 @@ class ShopViewModel(
             initialValue = emptyList()
         )
 
-    // -------------------------------------------------------------------------
     // 2. ESTADO DEL CARRITO Y CONFIGURACIÓN (Modificado)
-    // -------------------------------------------------------------------------
-
     var selectedVehicle: VehiclePopulated? by mutableStateOf(null)
         private set
 
     var selectedQuantity: Int by mutableStateOf(1)
         private set
 
-    // NUEVO: Lista de extras que el usuario ha marcado con el Checkbox
+    // Lista de extras que el usuario ha marcado con el Checkbox
     private val _selectedExtras = mutableStateListOf<ExtraFeatureEntity>()
     val selectedExtras: List<ExtraFeatureEntity> get() = _selectedExtras
 
@@ -55,10 +49,7 @@ class ShopViewModel(
             return (basePrice + extrasPrice) * selectedQuantity
         }
 
-    // -------------------------------------------------------------------------
     // ACCIONES DE CONFIGURACIÓN (Llamadas desde DetailsScreen)
-    // -------------------------------------------------------------------------
-
     // Al entrar al detalle, preparamos el vehículo y limpiamos extras anteriores
     fun selectVehicleById(id: Int) {
         val found = vehiclesState.value.find { it.vehicle.vehicleId == id.toLong() }
@@ -84,9 +75,7 @@ class ShopViewModel(
 
     // Confirmar compra (solo limpiamos selección visual, el carrito ya tiene los datos en las variables de arriba)
 
-    // -------------------------------------------------------------------------
     // 3. ESTADO DE MENSAJES (Feedback)
-    // -------------------------------------------------------------------------
     private val _uiMessage = MutableStateFlow<String?>(null)
     val uiMessage = _uiMessage.asStateFlow()
 
@@ -94,9 +83,7 @@ class ShopViewModel(
         refreshData()
     }
 
-    // -------------------------------------------------------------------------
     // ACCIONES DE CARRITO (Llamadas desde DetailsScreen y CartScreen)
-    // -------------------------------------------------------------------------
 
     fun addToCart(vehicle: VehiclePopulated, quantity: Int) {
         selectedVehicle = vehicle
@@ -114,10 +101,7 @@ class ShopViewModel(
         return vehiclesState.value.find { it.vehicle.vehicleId == id.toLong() }
     }
 
-    // -------------------------------------------------------------------------
     // ACCIONES DE BBDD / API (CRUD)
-    // -------------------------------------------------------------------------
-
     fun refreshData() {
         viewModelScope.launch {
             try {
@@ -168,11 +152,7 @@ class ShopViewModel(
         }
     }
 
-    // En tu archivo ShopViewModel.kt
-
-// ... el resto de tu código ...
-
-    // Añade esta función para conectar la UI con el Repositorio
+    // Conecta la UI con el Repositorio
     fun updateVehicle(
         id: Long,
         model: String,

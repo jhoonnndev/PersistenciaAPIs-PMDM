@@ -26,7 +26,6 @@ fun WelcomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Puedes poner el logo aquí también o solo texto
             Image(
                 painter = painterResource(id = R.drawable.car_shopping),
                 contentDescription = "Logo General",

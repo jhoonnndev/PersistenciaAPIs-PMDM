@@ -10,10 +10,10 @@ import androidx.room.PrimaryKey
 // Relación 1:N Una marca crea muchos coches
 @Entity(tableName = "brands")
 data class BrandEntity(
-    @PrimaryKey(autoGenerate = true) val brandId: Long = 0,
-    val name: String,        // Ej: Toyota
-    val country: String,     // Ej: Japón
-    val urlLogo: String      // URL de la imagen del logo
+    @PrimaryKey(autoGenerate = true) val brandId: Long = 0, //Id Autogenerado
+    val name: String,
+    val country: String,
+    val urlLogo: String
 )
 
 // TABLA VEHÍCULO (Vehicle)

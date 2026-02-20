@@ -26,7 +26,7 @@ class ShopApi {
         }
     }
 
-    // ⚠️ ASEGÚRATE DE QUE ESTA URL ES LA TUYA DE GITHUB
+    // URL DE NUESTRO GITHUB PARA ACCEDER AL JSON
     private val baseUrl = "https://my-json-server.typicode.com/jhoonnndev/persistenciaapis-pmdm"
 
     suspend fun getVehicles(): List<VehicleRemote> {

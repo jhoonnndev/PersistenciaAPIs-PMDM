@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
@@ -50,7 +49,7 @@ import java.time.format.DateTimeFormatter
 // BIENVENIDA CLIENTE
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomeScreenClient(navController: NavController) { // <--- Nombre cambiado para coincidir
+fun WelcomeScreenClient(navController: NavController) {
     // Estado para el selector de fecha
     val datePickerState = rememberDatePickerState()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -64,7 +63,6 @@ fun WelcomeScreenClient(navController: NavController) { // <--- Nombre cambiado 
             TopAppBar(
                 title = { Text(text = stringResource(R.string.app_name)) },
                 navigationIcon = {
-                    // Usamos un Row para poner la flecha a la izquierda del icono del coche
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // 1. Botón de retroceso
                         IconButton(onClick = { navController.popBackStack() }) {
@@ -77,7 +75,7 @@ fun WelcomeScreenClient(navController: NavController) { // <--- Nombre cambiado 
                         Icon(
                             painter = painterResource(R.drawable.car_shopping),
                             contentDescription = "Icono de coche",
-                            modifier = Modifier.size(30.dp) // Ajuste ligero de tamaño
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 }

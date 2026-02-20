@@ -2,14 +2,12 @@ package com.example.trabajonavegacionpmdm.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.trabajonavegacionpmdm.ui.viewmodel.ShopViewModel
@@ -87,7 +85,7 @@ fun AddEditScreen(
                 .verticalScroll(rememberScrollState()), // Hacemos scrollable por si el teclado tapa
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // --- CAMPOS DEL FORMULARIO ---
+            // CAMPOS DEL FORMULARIO
             OutlinedTextField(value = model, onValueChange = { model = it }, label = { Text("Modelo") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = price, onValueChange = { price = it }, label = { Text("Precio") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = imageUrl, onValueChange = { imageUrl = it }, label = { Text("URL Imagen") }, modifier = Modifier.fillMaxWidth())
@@ -97,7 +95,7 @@ fun AddEditScreen(
             OutlinedTextField(value = engineType, onValueChange = { engineType = it }, label = { Text("Tipo Motor") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = weight, onValueChange = { weight = it }, label = { Text("Peso (kg)") }, modifier = Modifier.fillMaxWidth())
 
-            // --- BOTÓN DE GUARDAR ---
+            // BOTÓN DE GUARDAR
             Button(
                 onClick = {
                     // Validamos que al menos haya modelo y precio

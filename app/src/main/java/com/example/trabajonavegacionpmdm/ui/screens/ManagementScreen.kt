@@ -65,15 +65,15 @@ fun ManagementScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.padding(padding),
-                contentPadding = PaddingValues(16.dp), // Un poco de margen para que respire
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp) // Espacio entre tarjetas
             ) {
                 items(vehicles) { vehiclePopulated ->
-                    // ¡AQUÍ ESTABA EL ERROR! Ahora sí llamamos a tu tarjeta
+                    //Tarjeta
                     EmployeeVehicleItem(
                         vehicle = vehiclePopulated,
-                        onEditClick = { onEditClick(vehiclePopulated.vehicle.vehicleId) }, // Pasamos el clic para editar
-                        onDeleteClick = { viewModel.deleteVehicle(vehiclePopulated) } // Pasamos el clic para borrar
+                        onEditClick = { onEditClick(vehiclePopulated.vehicle.vehicleId) },
+                        onDeleteClick = { viewModel.deleteVehicle(vehiclePopulated) }
                     )
                 }
             }
@@ -84,12 +84,12 @@ fun ManagementScreen(
 @Composable
 fun EmployeeVehicleItem(
     vehicle: VehiclePopulated,
-    onEditClick: () -> Unit, // Añadimos esto para poder editar
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     Card(
         elevation = CardDefaults.cardElevation(4.dp),
-        // Hacemos que toda la tarjeta sea clickable para ir a editar
+        // Toda la tarjeta es editable
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEditClick() }
@@ -100,7 +100,6 @@ fun EmployeeVehicleItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Imagen pequeña (¡Ahora sí se verá!)
             AsyncImage(
                 model = vehicle.vehicle.imageUrl,
                 contentDescription = vehicle.vehicle.model,
